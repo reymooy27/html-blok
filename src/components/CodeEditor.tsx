@@ -25,6 +25,7 @@ export function CodeEditor() {
         serializeHtml(
           useStore.getState().blocks,
           useStore.getState().classStyles,
+          false,
         ),
       ),
     [],
@@ -65,7 +66,7 @@ export function CodeEditor() {
       }
       if (state.blocks === prev.blocks && state.classStyles === prev.classStyles)
         return;
-      setCode(pretty(serializeHtml(state.blocks, state.classStyles)));
+      setCode(pretty(serializeHtml(state.blocks, state.classStyles, false)));
       setStatus("ok");
     });
     return unsub;

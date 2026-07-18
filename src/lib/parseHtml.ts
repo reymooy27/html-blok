@@ -114,14 +114,14 @@ function nodeToBlock(node: Element): Block {
   };
 }
 
-/** Parse isi <style> berupa aturan `.nama { ... }` menjadi classStyles. */
+/** Parse isi <style> berupa aturan `.nama { ... }` atau `tag { ... }`. */
 function parseClassStyles(css: string): Record<string, Record<string, string>> {
   const result: Record<string, Record<string, string>> = {};
-  const ruleRe = /\.([\w-]+)\s*\{([^}]*)\}/g;
+  const ruleRe = /(?:\.([\w-]+)|([a-zA-Z][\w-]*))\s*\{([^}]*)\}/g;
   let m: RegExpExecArray | null;
   while ((m = ruleRe.exec(css))) {
-    const name = m[1];
-    const decl = m[2];
+    const name = m[1] ?? m[2];
+    const decl = m[3];
     const props: Record<string, string> = {};
     for (const raw of decl.split(";")) {
       const idx = raw.indexOf(":");

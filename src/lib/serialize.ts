@@ -63,7 +63,8 @@ function classStylesToCss(classStyles: Record<string, Record<string, string>>): 
         .map(([p, v]) => `  ${p}: ${v};`)
         .join("\n");
       if (!decl) return "";
-      return `.${name} {\n${decl}\n}`;
+      const selector = name === "body" || name === "img" ? name : `.${name}`;
+      return `${selector} {\n${decl}\n}`;
     })
     .filter(Boolean)
     .join("\n");
@@ -73,18 +74,23 @@ function classStylesToCss(classStyles: Record<string, Record<string, string>>): 
 export function serializeHtml(
   blocks: Block[],
   classStyles: Record<string, ClassStyle> = {},
+  includeBase = true,
 ): string {
   const body = blocks.map(blockToHtml).join("\n");
   const custom = classStylesToCss(classStyles);
+  const hasBody = classStyles["body"] !== undefined;
+  const hasImg = classStyles["img"] !== undefined;
+  const base =
+    includeBase && (!hasBody || !hasImg)
+      ? `  body { font-family: system-ui, sans-serif; padding: 16px; line-height: 1.5; }\n  img { max-width: 100%; }\n`
+      : "";
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <style>
-  body { font-family: system-ui, sans-serif; padding: 16px; line-height: 1.5; }
-  img { max-width: 100%; }
-${custom}
+${base}${custom}
 </style>
 </head>
 <body>
