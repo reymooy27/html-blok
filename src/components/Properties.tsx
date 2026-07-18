@@ -56,10 +56,14 @@ export function Properties() {
       <Field label="Nama Kelas">
         <input
           value={block.attrs?.class ?? ""}
-          onChange={(e) => updateAttr(block.id, "class", e.target.value.trim())}
-          placeholder="mis. kotak"
+          onChange={(e) => updateAttr(block.id, "class", e.target.value)}
+          placeholder="mis. kotak utama"
           className={inputCls}
         />
+        <p className="mt-1 text-[11px] text-slate-400">
+          Pisahkan beberapa kelas dengan spasi, mis.{" "}
+          <code className="rounded bg-slate-100 px-1">kotak utama</code>
+        </p>
       </Field>
 
       {meta.text && (

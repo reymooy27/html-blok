@@ -13,6 +13,7 @@ import {
 } from "@dnd-kit/core";
 import { Toolbar } from "./components/Toolbar";
 import { Palette } from "./components/Palette";
+import { CssPropPalette } from "./components/CssPropPalette";
 import { Canvas } from "./components/Canvas";
 import { Properties } from "./components/Properties";
 import { Preview } from "./components/Preview";
@@ -127,7 +128,7 @@ export default function App() {
         onDragCancel={() => setActive(null)}
       >
         <div className="flex min-h-0 flex-1">
-          <Palette />
+          {tab === "style" ? <CssPropPalette /> : <Palette />}
           <main className="flex min-w-0 flex-1 flex-col">
             <div className="flex gap-1 border-b border-slate-200 bg-white px-3 py-1.5">
               <button
@@ -183,7 +184,7 @@ export default function App() {
               )}
             </div>
           </main>
-          <Properties />
+          {tab === "edit" ? <Properties /> : null}
         </div>
 
         <DragOverlay dropAnimation={null}>

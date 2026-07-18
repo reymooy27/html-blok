@@ -44,6 +44,7 @@ export function CodeEditor() {
     timer.current = setTimeout(() => {
       const { blocks, classStyles } = parseHtml(code);
       if (blocks.length) {
+        skipNext.current = true; // jangan biarkan subscribe menimpa kode kita
         load(blocks, classStyles);
         setStatus("ok");
       } else {
@@ -58,9 +59,12 @@ export function CodeEditor() {
   // Jika canvas berubah dari luar editor (mis. drag di Susun), sinkron balik.
   useEffect(() => {
     const unsub = useStore.subscribe((state, prev) => {
+      if (skipNext.current) {
+        skipNext.current = false;
+        return;
+      }
       if (state.blocks === prev.blocks && state.classStyles === prev.classStyles)
         return;
-      skipNext.current = true;
       setCode(pretty(serializeHtml(state.blocks, state.classStyles)));
       setStatus("ok");
     });
