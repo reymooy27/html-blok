@@ -1,7 +1,7 @@
 import { TAG_META } from "../lib/tags";
 import { useStore } from "../store";
 import { findBlock } from "../lib/tree";
-import { SwatchPicker, Slider, StyleGroup, AlignButtons } from "./styleControls";
+import { SwatchPicker, SliderField, StyleGroup, AlignButtons } from "./styleControls";
 
 function Field({
   label,
@@ -109,14 +109,14 @@ export function Properties() {
         </Field>
       )}
 
-      <StyleGroup title="Warna">
-        <Field label="Warna Tulisan">
+      <StyleGroup title="Color">
+        <Field label="color">
           <SwatchPicker
             value={block.styles?.color}
             onChange={(v) => updateStyle(block.id, "color", v)}
           />
         </Field>
-        <Field label="Warna Latar">
+        <Field label="background-color">
           <SwatchPicker
             value={block.styles?.backgroundColor}
             onChange={(v) => updateStyle(block.id, "backgroundColor", v)}
@@ -124,9 +124,9 @@ export function Properties() {
         </Field>
       </StyleGroup>
 
-      <StyleGroup title="Tulisan & Perataan">
-        <Slider
-          label="Ukuran Huruf"
+      <StyleGroup title="Text & Alignment">
+        <SliderField
+          label="font-size"
           value={block.styles?.fontSize}
           min={12}
           max={72}
@@ -138,37 +138,37 @@ export function Properties() {
         />
       </StyleGroup>
 
-      <StyleGroup title="Bentuk & Spasi">
-        <Slider
-          label="Spasi Dalam"
+      <StyleGroup title="Shape & Spacing">
+        <SliderField
+          label="padding"
           value={block.styles?.padding}
           min={0}
           max={48}
           onChange={(v) => updateStyle(block.id, "padding", v)}
         />
-        <Slider
-          label="Sudut Membulat"
+        <SliderField
+          label="border-radius"
           value={block.styles?.borderRadius}
           min={0}
           max={48}
           onChange={(v) => updateStyle(block.id, "borderRadius", v)}
         />
-        <Slider
-          label="Jarak Luar"
+        <SliderField
+          label="margin"
           value={block.styles?.margin}
           min={0}
           max={64}
           onChange={(v) => updateStyle(block.id, "margin", v)}
         />
-        <Slider
-          label="Tebal Garis Tepi"
+        <SliderField
+          label="border-width"
           value={block.styles?.borderWidth}
           min={0}
           max={12}
           onChange={(v) => updateStyle(block.id, "borderWidth", v)}
         />
         {block.styles?.borderWidth ? (
-          <Field label="Warna Garis Tepi">
+          <Field label="border-color">
             <SwatchPicker
               value={block.styles?.borderColor}
               onChange={(v) => updateStyle(block.id, "borderColor", v ?? "#000000")}
@@ -177,16 +177,16 @@ export function Properties() {
         ) : null}
       </StyleGroup>
 
-      <StyleGroup title="Ukuran">
-        <Slider
-          label="Lebar"
+      <StyleGroup title="Size">
+        <SliderField
+          label="width"
           value={block.styles?.width}
           min={0}
           max={800}
           onChange={(v) => updateStyle(block.id, "width", v)}
         />
-        <Slider
-          label="Tinggi"
+        <SliderField
+          label="height"
           value={block.styles?.height}
           min={0}
           max={800}

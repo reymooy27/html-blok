@@ -44,6 +44,39 @@ type Actions = {
 
 type Store = State & Actions;
 
+const STORAGE_KEY = "blok-html-state";
+
+function loadPersisted(): { blocks: Block[]; classStyles: Record<string, ClassStyle> } {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { blocks: [], classStyles: {} };
+    const parsed = JSON.parse(raw);
+    return {
+      blocks: Array.isArray(parsed.blocks) ? parsed.blocks : [],
+      classStyles:
+        parsed.classStyles && typeof parsed.classStyles === "object"
+          ? parsed.classStyles
+          : {},
+    };
+  } catch {
+    return { blocks: [], classStyles: {} };
+  }
+}
+
+function savePersisted(state: {
+  blocks: Block[];
+  classStyles: Record<string, ClassStyle>;
+}) {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ blocks: state.blocks, classStyles: state.classStyles }),
+    );
+  } catch {
+    /* abaikan jika storage penuh/blocked */
+  }
+}
+
 function makeBlock(tag: HtmlTag): Block {
   const meta = TAG_META[tag];
   return {
@@ -151,10 +184,12 @@ export const useStore = create<Store>((set, get) => {
     });
   };
 
+  const persisted = loadPersisted();
+
   return {
-    blocks: [],
+    blocks: persisted.blocks,
     selectedId: null,
-    classStyles: {},
+    classStyles: persisted.classStyles,
     past: [],
     future: [],
     lastCoalesce: null,
@@ -312,6 +347,7 @@ export const useStore = create<Store>((set, get) => {
       if (blocks.length === 0) return;
       structural([]);
       set({ selectedId: null });
+      savePersisted({ blocks: [], classStyles: {} });
     },
 
     load: (blocks, classStyles) => {
@@ -326,4 +362,11 @@ export const useStore = create<Store>((set, get) => {
       });
     },
   };
+});
+
+// Simpan state ke localStorage tiap kali blocks/classStyles berubah.
+useStore.subscribe((state, prev) => {
+  if (state.blocks === prev.blocks && state.classStyles === prev.classStyles)
+    return;
+  savePersisted(state);
 });

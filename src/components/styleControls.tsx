@@ -95,6 +95,61 @@ export function Slider({
   );
 }
 
+export function SliderField({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  unit = "px",
+  onChange,
+}: {
+  label: string;
+  value?: number;
+  min: number;
+  max: number;
+  step?: number;
+  unit?: string;
+  onChange: (v: number | undefined) => void;
+}) {
+  const current = value ?? 0;
+  return (
+    <div>
+      <div className="mb-0.5 flex items-center justify-between">
+        <span className="text-xs font-semibold text-slate-500">{label}</span>
+        <span className="font-mono text-xs text-slate-400">
+          {value == null ? "auto" : `${value}${unit}`}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={current}
+        onChange={(e) => {
+          const v = Number(e.target.value);
+          onChange(v === 0 ? undefined : v);
+        }}
+        className="w-full accent-indigo-500"
+      />
+      <input
+        type="text"
+        inputMode="numeric"
+        value={value ?? ""}
+        placeholder="manual, e.g. 2rem"
+        onChange={(e) => {
+          const raw = e.target.value.trim();
+          if (raw === "") return onChange(undefined);
+          const num = parseInt(raw, 10);
+          onChange(Number.isNaN(num) ? undefined : num);
+        }}
+        className="mt-1 w-full rounded-md border border-slate-200 px-2 py-1 font-mono text-xs text-slate-600 outline-none focus:border-indigo-400"
+      />
+    </div>
+  );
+}
+
 export function StyleGroup({
   title,
   children,
@@ -122,7 +177,7 @@ export function AlignButtons({
   return (
     <div>
       <span className="mb-1 block text-xs font-semibold text-slate-500">
-        Rata
+        text-align
       </span>
       <div className="flex gap-1">
         {(["left", "center", "right"] as const).map((a) => {

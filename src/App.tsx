@@ -142,14 +142,14 @@ export default function App() {
                 🧩 Susun
               </button>
               <button
-                onClick={() => setTab("preview")}
+                onClick={() => setTab("style")}
                 className={`rounded-lg px-3 py-1 text-sm font-semibold ${
-                  tab === "preview"
+                  tab === "style"
                     ? "bg-indigo-500 text-white"
                     : "text-slate-500 hover:bg-slate-100"
                 }`}
               >
-                👀 Tampilan
+                🎨 Gaya
               </button>
               <button
                 onClick={() => setTab("code")}
@@ -162,14 +162,14 @@ export default function App() {
                 {"</>"} Kode
               </button>
               <button
-                onClick={() => setTab("style")}
+                onClick={() => setTab("preview")}
                 className={`rounded-lg px-3 py-1 text-sm font-semibold ${
-                  tab === "style"
+                  tab === "preview"
                     ? "bg-indigo-500 text-white"
                     : "text-slate-500 hover:bg-slate-100"
                 }`}
               >
-                🎨 Gaya
+                👀 Tampilan
               </button>
             </div>
             <div className="min-h-0 flex-1">
