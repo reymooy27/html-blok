@@ -20,7 +20,13 @@ function pretty(code: string): string {
 export function CodeEditor() {
   const load = useStore((s) => s.load);
   const initial = useMemo(
-    () => pretty(serializeHtml(useStore.getState().blocks)),
+    () =>
+      pretty(
+        serializeHtml(
+          useStore.getState().blocks,
+          useStore.getState().classStyles,
+        ),
+      ),
     [],
   );
   const [code, setCode] = useState(initial);
@@ -36,9 +42,9 @@ export function CodeEditor() {
     }
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      const parsed = parseHtml(code);
-      if (parsed.length) {
-        load(parsed);
+      const { blocks, classStyles } = parseHtml(code);
+      if (blocks.length) {
+        load(blocks, classStyles);
         setStatus("ok");
       } else {
         setStatus("invalid");
@@ -52,9 +58,10 @@ export function CodeEditor() {
   // Jika canvas berubah dari luar editor (mis. drag di Susun), sinkron balik.
   useEffect(() => {
     const unsub = useStore.subscribe((state, prev) => {
-      if (state.blocks === prev.blocks) return;
+      if (state.blocks === prev.blocks && state.classStyles === prev.classStyles)
+        return;
       skipNext.current = true;
-      setCode(pretty(serializeHtml(state.blocks)));
+      setCode(pretty(serializeHtml(state.blocks, state.classStyles)));
       setStatus("ok");
     });
     return unsub;

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Block, BlockAttrs, CssStyle, HtmlTag } from "./types";
+import type { Block, BlockAttrs, ClassStyle, CssStyle, HtmlTag } from "./types";
 import {
   cloneBlock,
   createId,
@@ -12,8 +12,9 @@ import { TAG_META } from "./lib/tags";
 type State = {
   blocks: Block[];
   selectedId: string | null;
-  past: Block[][];
-  future: Block[][];
+  classStyles: Record<string, ClassStyle>;
+  past: { blocks: Block[]; classStyles: Record<string, ClassStyle> }[];
+  future: { blocks: Block[]; classStyles: Record<string, ClassStyle> }[];
   lastCoalesce: string | null;
 };
 
@@ -29,11 +30,16 @@ type Actions = {
     key: keyof CssStyle,
     value: CssStyle[keyof CssStyle],
   ) => void;
+  addClassProp: (name: string, prop: string) => void;
+  updateClassStyle: (name: string, prop: string, value: string) => void;
+  removeClassProp: (name: string, prop: string) => void;
+  renameClassStyle: (oldName: string, newName: string) => void;
+  removeClassStyle: (name: string) => void;
   select: (id: string | null) => void;
   undo: () => void;
   redo: () => void;
   reset: () => void;
-  load: (blocks: Block[]) => void;
+  load: (blocks: Block[], classStyles?: Record<string, ClassStyle>) => void;
 };
 
 type Store = State & Actions;
@@ -58,6 +64,29 @@ function updateInTree(
     if (b.id === id) return updater(b);
     return { ...b, children: updateInTree(b.children, id, updater) };
   });
+}
+
+function renameClassInTree(
+  block: Block,
+  oldName: string,
+  newName: string,
+): Block {
+  const cls = block.attrs?.class;
+  let nextAttrs = block.attrs;
+  if (cls) {
+    const parts = cls
+      .split(/\s+/)
+      .map((c) => (c === oldName ? newName : c));
+    const joined = parts.join(" ");
+    nextAttrs = { ...block.attrs, class: joined };
+  }
+  return {
+    ...block,
+    attrs: nextAttrs,
+    children: block.children.map((c) =>
+      renameClassInTree(c, oldName, newName),
+    ),
+  };
 }
 
 function isDescendant(
@@ -86,26 +115,36 @@ export const useStore = create<Store>((set, get) => {
    * @param coalesceKey jika sama dengan aksi sebelumnya (mis. mengetik di
    *   field yang sama), snapshot history TIDAK ditambah → 1 langkah undo.
    */
-  const push = (next: Block[], coalesceKey: string | null = null) => {
-    const { blocks, past, lastCoalesce } = get();
+  const push = (
+    next: Block[],
+    coalesceKey: string | null = null,
+    nextClassStyles: Record<string, ClassStyle> = get().classStyles,
+  ) => {
+    const { blocks, classStyles, past, lastCoalesce } = get();
     if (coalesceKey && lastCoalesce === coalesceKey) {
-      set({ blocks: next, lastCoalesce });
+      set({ blocks: next, classStyles: nextClassStyles, lastCoalesce });
       return;
     }
     set({
       blocks: next,
-      past: [...past, blocks].slice(-MAX_HISTORY),
+      classStyles: nextClassStyles,
+      past: [...past, { blocks, classStyles }].slice(-MAX_HISTORY),
       future: [],
       lastCoalesce: coalesceKey,
     });
   };
 
   // aksi struktural: selalu reset coalesce
-  const structural = (next: Block[], selectId: string | null = null) => {
-    const { blocks, past } = get();
+  const structural = (
+    next: Block[],
+    selectId: string | null = null,
+    nextClassStyles: Record<string, ClassStyle> = get().classStyles,
+  ) => {
+    const { blocks, classStyles, past } = get();
     set({
       blocks: next,
-      past: [...past, blocks].slice(-MAX_HISTORY),
+      classStyles: nextClassStyles,
+      past: [...past, { blocks, classStyles }].slice(-MAX_HISTORY),
       future: [],
       lastCoalesce: null,
       ...(selectId !== null ? { selectedId: selectId } : {}),
@@ -115,6 +154,7 @@ export const useStore = create<Store>((set, get) => {
   return {
     blocks: [],
     selectedId: null,
+    classStyles: {},
     past: [],
     future: [],
     lastCoalesce: null,
@@ -189,27 +229,79 @@ export const useStore = create<Store>((set, get) => {
         `style:${id}:${key}`,
       ),
 
+    addClassProp: (name, prop) => {
+      const current = get().classStyles[name] ?? {};
+      if (current[prop] !== undefined) return;
+      const nextStyles = {
+        ...get().classStyles,
+        [name]: { ...current, [prop]: "" },
+      };
+      structural(get().blocks, null, nextStyles);
+    },
+
+    updateClassStyle: (name, prop, value) => {
+      const current = get().classStyles[name];
+      if (!current) return;
+      const nextStyles = {
+        ...get().classStyles,
+        [name]: { ...current, [prop]: value },
+      };
+      structural(get().blocks, null, nextStyles);
+    },
+
+    removeClassProp: (name, prop) => {
+      const current = get().classStyles[name];
+      if (!current) return;
+      const next = { ...current };
+      delete next[prop];
+      const nextStyles = { ...get().classStyles, [name]: next };
+      structural(get().blocks, null, nextStyles);
+    },
+
+    removeClassStyle: (name) => {
+      const nextStyles = { ...get().classStyles };
+      delete nextStyles[name];
+      structural(get().blocks, null, nextStyles);
+    },
+
+    renameClassStyle: (oldName, newName) => {
+      const trimmed = newName.trim();
+      if (!trimmed || trimmed === oldName) return;
+      if (get().classStyles[trimmed]) return;
+      const next = { ...get().classStyles };
+      const props = next[oldName];
+      delete next[oldName];
+      next[trimmed] = props;
+      // perbarui atribut class pada block yang memakai nama lama
+      const renamedBlocks = get().blocks.map((b) =>
+        renameClassInTree(b, oldName, trimmed),
+      );
+      structural(renamedBlocks, null, next);
+    },
+
     select: (id) => set({ selectedId: id }),
 
     undo: () => {
-      const { past, future, blocks } = get();
+      const { past, future, blocks, classStyles } = get();
       if (past.length === 0) return;
       const previous = past[past.length - 1];
       set({
-        blocks: previous,
+        blocks: previous.blocks,
+        classStyles: previous.classStyles,
         past: past.slice(0, -1),
-        future: [blocks, ...future].slice(0, MAX_HISTORY),
+        future: [{ blocks, classStyles }, ...future].slice(0, MAX_HISTORY),
         lastCoalesce: null,
       });
     },
 
     redo: () => {
-      const { past, future, blocks } = get();
+      const { past, future, blocks, classStyles } = get();
       if (future.length === 0) return;
       const next = future[0];
       set({
-        blocks: next,
-        past: [...past, blocks].slice(-MAX_HISTORY),
+        blocks: next.blocks,
+        classStyles: next.classStyles,
+        past: [...past, { blocks, classStyles }].slice(-MAX_HISTORY),
         future: future.slice(1),
         lastCoalesce: null,
       });
@@ -222,8 +314,16 @@ export const useStore = create<Store>((set, get) => {
       set({ selectedId: null });
     },
 
-    load: (blocks) => {
-      set({ blocks, selectedId: null, past: [], future: [], lastCoalesce: null });
+    load: (blocks, classStyles) => {
+      set({
+        blocks,
+        classStyles:
+          classStyles === undefined ? get().classStyles : classStyles,
+        selectedId: null,
+        past: [],
+        future: [],
+        lastCoalesce: null,
+      });
     },
   };
 });

@@ -4,7 +4,11 @@ import { serializeHtml } from "../lib/serialize";
 
 export function Preview() {
   const blocks = useStore((s) => s.blocks);
-  const html = useMemo(() => serializeHtml(blocks), [blocks]);
+  const classStyles = useStore((s) => s.classStyles);
+  const html = useMemo(
+    () => serializeHtml(blocks, classStyles),
+    [blocks, classStyles],
+  );
 
   return (
     <iframe

@@ -1,6 +1,7 @@
 import { TAG_META } from "../lib/tags";
 import { useStore } from "../store";
 import { findBlock } from "../lib/tree";
+import { SwatchPicker, Slider, StyleGroup, AlignButtons } from "./styleControls";
 
 function Field({
   label,
@@ -27,6 +28,7 @@ export function Properties() {
   const selectedId = useStore((s) => s.selectedId);
   const updateText = useStore((s) => s.updateText);
   const updateAttr = useStore((s) => s.updateAttr);
+  const updateStyle = useStore((s) => s.updateStyle);
 
   const found = selectedId ? findBlock(blocks, selectedId) : null;
   const block = found?.block;
@@ -50,6 +52,15 @@ export function Properties() {
         <h2 className="text-sm font-bold text-slate-700">🎨 Properti</h2>
         <p className="font-mono text-xs text-slate-400">&lt;{block.tag}&gt;</p>
       </div>
+
+      <Field label="Nama Kelas">
+        <input
+          value={block.attrs?.class ?? ""}
+          onChange={(e) => updateAttr(block.id, "class", e.target.value.trim())}
+          placeholder="mis. kotak"
+          className={inputCls}
+        />
+      </Field>
 
       {meta.text && (
         <Field label="Teks">
@@ -93,6 +104,91 @@ export function Properties() {
           />
         </Field>
       )}
+
+      <StyleGroup title="Warna">
+        <Field label="Warna Tulisan">
+          <SwatchPicker
+            value={block.styles?.color}
+            onChange={(v) => updateStyle(block.id, "color", v)}
+          />
+        </Field>
+        <Field label="Warna Latar">
+          <SwatchPicker
+            value={block.styles?.backgroundColor}
+            onChange={(v) => updateStyle(block.id, "backgroundColor", v)}
+          />
+        </Field>
+      </StyleGroup>
+
+      <StyleGroup title="Tulisan & Perataan">
+        <Slider
+          label="Ukuran Huruf"
+          value={block.styles?.fontSize}
+          min={12}
+          max={72}
+          onChange={(v) => updateStyle(block.id, "fontSize", v)}
+        />
+        <AlignButtons
+          value={block.styles?.textAlign}
+          onChange={(v) => updateStyle(block.id, "textAlign", v)}
+        />
+      </StyleGroup>
+
+      <StyleGroup title="Bentuk & Spasi">
+        <Slider
+          label="Spasi Dalam"
+          value={block.styles?.padding}
+          min={0}
+          max={48}
+          onChange={(v) => updateStyle(block.id, "padding", v)}
+        />
+        <Slider
+          label="Sudut Membulat"
+          value={block.styles?.borderRadius}
+          min={0}
+          max={48}
+          onChange={(v) => updateStyle(block.id, "borderRadius", v)}
+        />
+        <Slider
+          label="Jarak Luar"
+          value={block.styles?.margin}
+          min={0}
+          max={64}
+          onChange={(v) => updateStyle(block.id, "margin", v)}
+        />
+        <Slider
+          label="Tebal Garis Tepi"
+          value={block.styles?.borderWidth}
+          min={0}
+          max={12}
+          onChange={(v) => updateStyle(block.id, "borderWidth", v)}
+        />
+        {block.styles?.borderWidth ? (
+          <Field label="Warna Garis Tepi">
+            <SwatchPicker
+              value={block.styles?.borderColor}
+              onChange={(v) => updateStyle(block.id, "borderColor", v ?? "#000000")}
+            />
+          </Field>
+        ) : null}
+      </StyleGroup>
+
+      <StyleGroup title="Ukuran">
+        <Slider
+          label="Lebar"
+          value={block.styles?.width}
+          min={0}
+          max={800}
+          onChange={(v) => updateStyle(block.id, "width", v)}
+        />
+        <Slider
+          label="Tinggi"
+          value={block.styles?.height}
+          min={0}
+          max={800}
+          onChange={(v) => updateStyle(block.id, "height", v)}
+        />
+      </StyleGroup>
     </aside>
   );
 }

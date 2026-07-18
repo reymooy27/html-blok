@@ -1,4 +1,4 @@
-import type { Block, BlockAttrs, CssStyle, HtmlTag } from "../types";
+import type { Block, BlockAttrs, ClassStyle, CssStyle, HtmlTag } from "../types";
 import { createId } from "./tree";
 import { TAG_META } from "./tags";
 
@@ -49,6 +49,15 @@ function parseStyle(input: string | null): CssStyle | undefined {
         }
         break;
       }
+      case "width":
+        styles.width = parseInt(value, 10) || undefined;
+        break;
+      case "height":
+        styles.height = parseInt(value, 10) || undefined;
+        break;
+      case "margin":
+        styles.margin = parseInt(value, 10) || undefined;
+        break;
     }
   }
   return Object.keys(styles).length ? styles : undefined;
@@ -59,9 +68,11 @@ function parseAttrs(el: Element): BlockAttrs | undefined {
   const src = el.getAttribute("src");
   const alt = el.getAttribute("alt");
   const href = el.getAttribute("href");
+  const cls = el.getAttribute("class");
   if (src) attrs.src = src;
   if (alt) attrs.alt = alt;
   if (href) attrs.href = href;
+  if (cls) attrs.class = cls.trim();
   return Object.keys(attrs).length ? attrs : undefined;
 }
 
@@ -103,11 +114,34 @@ function nodeToBlock(node: Element): Block {
   };
 }
 
-/** Parse full HTML document or fragment into blocks. */
-export function parseHtml(html: string): Block[] {
+/** Parse isi <style> berupa aturan `.nama { ... }` menjadi classStyles. */
+function parseClassStyles(css: string): Record<string, Record<string, string>> {
+  const result: Record<string, Record<string, string>> = {};
+  const ruleRe = /\.([\w-]+)\s*\{([^}]*)\}/g;
+  let m: RegExpExecArray | null;
+  while ((m = ruleRe.exec(css))) {
+    const name = m[1];
+    const decl = m[2];
+    const props: Record<string, string> = {};
+    for (const raw of decl.split(";")) {
+      const idx = raw.indexOf(":");
+      if (idx === -1) continue;
+      const prop = raw.slice(0, idx).trim().toLowerCase();
+      const value = raw.slice(idx + 1).trim();
+      if (prop && value) props[prop] = value;
+    }
+    if (Object.keys(props).length) result[name] = props;
+  }
+  return result;
+}
+
+/** Parse full HTML document or fragment into blocks + class styles. */
+export function parseHtml(
+  html: string,
+): { blocks: Block[]; classStyles: Record<string, ClassStyle> } {
   const doc = new DOMParser().parseFromString(html, "text/html");
   const body = doc.body;
-  if (!body) return [];
+  if (!body) return { blocks: [], classStyles: {} };
 
   const blocks: Block[] = [];
   body.childNodes.forEach((child) => {
@@ -115,5 +149,11 @@ export function parseHtml(html: string): Block[] {
       blocks.push(nodeToBlock(child as Element));
     }
   });
-  return blocks;
+
+  let classStyles: Record<string, ClassStyle> = {};
+  doc.querySelectorAll("style").forEach((styleEl) => {
+    classStyles = { ...classStyles, ...parseClassStyles(styleEl.textContent ?? "") };
+  });
+
+  return { blocks, classStyles };
 }

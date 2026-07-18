@@ -1,4 +1,4 @@
-import type { Block, CssStyle } from "../types";
+import type { Block, CssStyle, BlockAttrs, ClassStyle } from "../types";
 
 function escapeHtml(value: string): string {
   return value
@@ -24,14 +24,19 @@ function styleToCss(styles?: CssStyle): string {
     const color = styles.borderColor || "#000000";
     parts.push(`border:${styles.borderWidth}px solid ${color}`);
   }
+  if (styles.width) parts.push(`width:${styles.width}px`);
+  if (styles.height) parts.push(`height:${styles.height}px`);
+  if (styles.margin) parts.push(`margin:${styles.margin}px`);
   return parts.join(";");
 }
 
 function attrsToHtml(block: Block): string {
   const out: string[] = [];
-  if (block.attrs?.src) out.push(`src="${escapeHtml(block.attrs.src)}"`);
-  if (block.attrs?.alt) out.push(`alt="${escapeHtml(block.attrs.alt)}"`);
-  if (block.attrs?.href) out.push(`href="${escapeHtml(block.attrs.href)}"`);
+  const a: BlockAttrs | undefined = block.attrs;
+  if (a?.src) out.push(`src="${escapeHtml(a.src)}"`);
+  if (a?.alt) out.push(`alt="${escapeHtml(a.alt)}"`);
+  if (a?.href) out.push(`href="${escapeHtml(a.href)}"`);
+  if (a?.class) out.push(`class="${escapeHtml(a.class)}"`);
   const style = styleToCss(block.styles);
   if (style) out.push(`style="${escapeHtml(style)}"`);
   return out.length ? " " + out.join(" ") : "";
@@ -50,8 +55,27 @@ function blockToHtml(block: Block): string {
   return `${open}${text}${inner}${close}`;
 }
 
-export function serializeHtml(blocks: Block[]): string {
+function classStylesToCss(classStyles: Record<string, Record<string, string>>): string {
+  const rules = Object.entries(classStyles)
+    .map(([name, props]) => {
+      const decl = Object.entries(props)
+        .filter(([, v]) => v.trim() !== "")
+        .map(([p, v]) => `  ${p}: ${v};`)
+        .join("\n");
+      if (!decl) return "";
+      return `.${name} {\n${decl}\n}`;
+    })
+    .filter(Boolean)
+    .join("\n");
+  return rules;
+}
+
+export function serializeHtml(
+  blocks: Block[],
+  classStyles: Record<string, ClassStyle> = {},
+): string {
   const body = blocks.map(blockToHtml).join("\n");
+  const custom = classStylesToCss(classStyles);
   return `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -60,6 +84,7 @@ export function serializeHtml(blocks: Block[]): string {
 <style>
   body { font-family: system-ui, sans-serif; padding: 16px; line-height: 1.5; }
   img { max-width: 100%; }
+${custom}
 </style>
 </head>
 <body>

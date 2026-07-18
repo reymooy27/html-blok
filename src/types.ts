@@ -64,13 +64,19 @@ export type CssStyle = {
   textAlign?: "left" | "center" | "right";
   borderColor?: string;
   borderWidth?: number; // px
+  width?: number; // px
+  height?: number; // px
+  margin?: number; // px
 };
 
 export type BlockAttrs = {
   src?: string;
   alt?: string;
   href?: string;
+  class?: string;
 };
+
+export type ClassStyle = Record<string, string>;
 
 export type Block = {
   id: string;

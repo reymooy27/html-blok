@@ -17,6 +17,7 @@ import { Canvas } from "./components/Canvas";
 import { Properties } from "./components/Properties";
 import { Preview } from "./components/Preview";
 import { CodeEditor } from "./components/CodeEditor";
+import { StyleSheet } from "./components/StyleSheet";
 import { useStore } from "./store";
 import { TAG_META, type TagMeta } from "./lib/tags";
 import { findBlock } from "./lib/tree";
@@ -44,7 +45,7 @@ function fromData(
 }
 
 export default function App() {
-  const [tab, setTab] = useState<"edit" | "preview" | "code">("edit");
+  const [tab, setTab] = useState<"edit" | "preview" | "code" | "style">("edit");
   const [active, setActive] = useState<Active>(null);
 
   const addBlock = useStore((s) => s.addBlock);
@@ -159,14 +160,26 @@ export default function App() {
               >
                 {"</>"} Kode
               </button>
+              <button
+                onClick={() => setTab("style")}
+                className={`rounded-lg px-3 py-1 text-sm font-semibold ${
+                  tab === "style"
+                    ? "bg-indigo-500 text-white"
+                    : "text-slate-500 hover:bg-slate-100"
+                }`}
+              >
+                🎨 Gaya
+              </button>
             </div>
             <div className="min-h-0 flex-1">
               {tab === "edit" ? (
                 <Canvas />
               ) : tab === "preview" ? (
                 <Preview />
-              ) : (
+              ) : tab === "code" ? (
                 <CodeEditor />
+              ) : (
+                <StyleSheet />
               )}
             </div>
           </main>
