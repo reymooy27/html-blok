@@ -115,7 +115,7 @@ export default function App() {
   const activeMeta: TagMeta | null = active ? TAG_META[active.tag] : null;
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col overflow-hidden">
       <Toolbar />
       <DndContext
         sensors={sensors}
@@ -127,10 +127,10 @@ export default function App() {
         onDragEnd={onDragEnd}
         onDragCancel={() => setActive(null)}
       >
-        <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 flex-1 overflow-hidden">
           {tab === "style" ? <CssPropPalette /> : <Palette />}
-          <main className="flex min-w-0 flex-1 flex-col">
-            <div className="flex gap-1 border-b border-slate-200 bg-white px-3 py-1.5">
+          <main className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <div className="flex shrink-0 gap-1 border-b border-slate-200 bg-white px-3 py-1.5">
               <button
                 onClick={() => setTab("edit")}
                 className={`rounded-lg px-3 py-1 text-sm font-semibold ${

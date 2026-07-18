@@ -62,7 +62,7 @@ export function Palette() {
   }, [query]);
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-slate-200 bg-slate-50">
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-slate-200 bg-slate-50">
       <div className="border-b border-slate-200 px-4 py-3">
         <h2 className="text-sm font-bold text-slate-700">🧱 Block</h2>
         <p className="text-xs text-slate-400">Seret ke kanvas</p>

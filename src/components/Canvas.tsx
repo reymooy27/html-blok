@@ -8,7 +8,7 @@ export function Canvas() {
 
   return (
     <div
-      className="thin-scroll flex-1 overflow-y-auto bg-slate-100 p-4"
+      className="thin-scroll h-full min-h-0 flex-1 overflow-y-auto bg-slate-100 p-4 pb-24"
       onClick={() => select(null)}
     >
       <div

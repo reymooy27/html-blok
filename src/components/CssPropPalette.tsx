@@ -62,7 +62,7 @@ export function CssPropPalette() {
   }, [query]);
 
   return (
-    <aside className="thin-scroll flex w-56 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-slate-50">
+    <aside className="thin-scroll flex h-full w-56 shrink-0 flex-col overflow-y-auto border-r border-slate-200 bg-slate-50">
       <div className="space-y-2 border-b border-slate-200 p-3">
         <h3 className="text-xs font-bold uppercase tracking-wide text-slate-400">
           Properti CSS

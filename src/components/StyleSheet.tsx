@@ -3,15 +3,6 @@ import { ChevronDown, ChevronRight, Plus, Trash2, X } from "lucide-react";
 import type { ClassStyle } from "../types";
 import { useStore } from "../store";
 
-const CSS_TO_CAMEL: Record<string, string> = {};
-function toCamel(prop: string): string {
-  if (prop.startsWith("--")) return prop; // CSS custom property
-  if (CSS_TO_CAMEL[prop]) return CSS_TO_CAMEL[prop];
-  const c = prop.replace(/-([a-z])/g, (_, ch) => ch.toUpperCase());
-  CSS_TO_CAMEL[prop] = c;
-  return c;
-}
-
 function ClassCard({
   name,
   style,
@@ -117,10 +108,17 @@ function ClassCard({
 export function StyleSheet() {
   const classStyles = useStore((s) => s.classStyles);
   const addClassProp = useStore((s) => s.addClassProp);
+  const removeClassStyle = useStore((s) => s.removeClassStyle);
   const updateClassStyle = useStore((s) => s.updateClassStyle);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const names = Object.keys(classStyles);
+
+  const clearAll = () => {
+    if (names.length === 0) return;
+    if (!confirm("Hapus semua kelas?")) return;
+    names.forEach((n) => removeClassStyle(n));
+  };
 
   const addClass = () => {
     let i = names.length + 1;
@@ -144,6 +142,14 @@ export function StyleSheet() {
       <div className="mx-auto max-w-2xl space-y-3">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-bold text-slate-700">🎨 Gaya Kelas</h2>
+            {names.length > 0 && (
+              <button
+                onClick={clearAll}
+                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-500 hover:bg-red-50"
+              >
+                Hapus Semua
+              </button>
+            )}
             <button
               onClick={addClass}
               className="ml-auto flex items-center gap-1 rounded-lg bg-indigo-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-600"
