@@ -15,6 +15,7 @@ export function BlockNode({ block }: { block: Block }) {
   const selectedId = useStore((s) => s.selectedId);
   const select = useStore((s) => s.select);
   const updateText = useStore((s) => s.updateText);
+  const updateAttr = useStore((s) => s.updateAttr);
   const removeBlock = useStore((s) => s.removeBlock);
   const duplicateBlock = useStore((s) => s.duplicateBlock);
 
@@ -63,6 +64,25 @@ export function BlockNode({ block }: { block: Block }) {
           &lt;{block.tag}&gt;
         </code>
         <span className="text-xs text-slate-400">{meta.label}</span>
+        {block.attrs?.class ? (
+          <span
+            className="rounded bg-slate-100 px-1 font-mono text-[10px] text-slate-500"
+            title="Class"
+          >
+            .{block.attrs.class}
+          </span>
+        ) : null}
+        {selected ? (
+          <input
+            value={block.attrs?.class ?? ""}
+            onChange={(e) =>
+              updateAttr(block.id, "class", e.target.value)
+            }
+            placeholder="class"
+            onClick={(e) => e.stopPropagation()}
+            className="w-20 rounded border border-slate-200 bg-white px-1 font-mono text-[10px] text-slate-600 outline-none focus:border-indigo-400"
+          />
+        ) : null}
         <div className="ml-auto flex items-center gap-0.5">
           <button
             onClick={(e) => {

@@ -12,15 +12,6 @@ function toCamel(prop: string): string {
   return c;
 }
 
-function classPreview(style?: ClassStyle): React.CSSProperties {
-  if (!style) return {};
-  const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(style)) {
-    if (v.trim()) out[toCamel(k)] = v;
-  }
-  return out as React.CSSProperties;
-}
-
 function ClassCard({
   name,
   style,
@@ -80,13 +71,6 @@ function ClassCard({
 
       {open && (
         <div className="space-y-3 border-t border-slate-100 p-4">
-          <div
-            className="rounded-lg border border-dashed border-slate-200 p-3 text-center text-sm"
-            style={classPreview(style)}
-          >
-            Contoh Tampilan Kelas
-          </div>
-
           <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => onDropProp(name, e)}
